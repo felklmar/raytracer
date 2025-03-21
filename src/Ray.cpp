@@ -8,12 +8,12 @@ Ray::Ray( const vec3 & origin, const vec3 & direction )
     : m_Origin( origin ),
       m_Direction( direction ) {}
 
-double Ray::triangleIntersection( Triangle & triangle, bool cullBackfaces ) {
+double Ray::triangleIntersection( const Triangle & triangle, bool cullBackfaces ) const {
     double infinity = std::numeric_limits<double>::infinity();
-    double epsilon = 1e-9;
+    double epsilon = std::numeric_limits<double>::epsilon();
 
-    vec3 e1 = triangle.B() - triangle.A();
-    vec3 e2 = triangle.C() - triangle.A();
+    vec3 e1 = triangle.getB() - triangle.getA();
+    vec3 e2 = triangle.getC() - triangle.getA();
     vec3 p = vec3::cross( m_Direction, e2 );
     double d = vec3::dot( e1, p );
 
@@ -24,7 +24,7 @@ double Ray::triangleIntersection( Triangle & triangle, bool cullBackfaces ) {
     }
 
     double d_inv = 1.0 / d;
-    vec3 q = m_Origin - triangle.A();
+    vec3 q = m_Origin - triangle.getA();
     double u = d_inv * vec3::dot( q, p );
     if ( u < 0.0 || u > 1.0 ) return infinity;
 
@@ -32,18 +32,17 @@ double Ray::triangleIntersection( Triangle & triangle, bool cullBackfaces ) {
     double v = d_inv * vec3::dot( r, m_Direction );
     if ( v < 0.0 || u + v > 1.0 ) return infinity;
     
-    double t = d_inv * vec3::dot( e2, r );
-    return t;
+    return d_inv * vec3::dot( e2, r );
 }
 
-vec3 & Ray::o() {
+const vec3 & Ray::getOrigin() const {
     return m_Origin;
 }
 
-vec3 & Ray::s() {
+const vec3 & Ray::getDirection() const{
     return m_Direction;
 }
-
+        
 std::ostream & operator<<( std::ostream & os, Ray ray ) {
     os << ray.m_Origin << " + t" << ray.m_Direction;
     return os;

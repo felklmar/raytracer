@@ -29,6 +29,7 @@ struct vec3 {
     static double dot( const vec3 & v1, const vec3 & v2 );
     static vec3 cross( const vec3 & v1, const vec3 & v2 );
 
+    double & operator[]( int index );
     friend vec3 operator*( double a, const vec3 & v );
     friend std::ostream & operator<<( std::ostream & os, vec3 vec );
 };

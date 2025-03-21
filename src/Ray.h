@@ -11,8 +11,10 @@ class Ray {
         vec3 m_Direction;
     public:
         Ray( const vec3 & origin, const vec3 & direction );
-        double triangleIntersection( Triangle & triangle, bool cullBackfaces = true );
-        vec3 & o();
-        vec3 & s();
+        double triangleIntersection( const Triangle & triangle, bool cullBackfaces = true ) const; 
+
+        const vec3 & getOrigin() const;
+        const vec3 & getDirection() const;
+
         friend std::ostream & operator<<( std::ostream & os, Ray ray );
 };

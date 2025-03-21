@@ -1,18 +1,26 @@
 #pragma once
 
 #include "vec3.h"
+#include "Material.h"
 
 class Triangle {
     private:
         vec3 m_A, m_B, m_C;
         vec3 m_An, m_Bn, m_Cn;
+        Material m_Material;
     public:
         Triangle( const vec3 & a, const vec3 & b, const vec3 & c,
-                  const vec3 & an, const vec3 & bn, const vec3 & cn );
+                  const vec3 & an, const vec3 & bn, const vec3 & cn,
+                  const Material & material );
 
-        vec3 & A();
-        vec3 & B();
-        vec3 & C();
+        const vec3 & getA() const;
+        const vec3 & getB() const;
+        const vec3 & getC() const;
+        const Material & getMaterial() const;
+
+        vec3 interpolateNormal( const vec3 & point ) const;
+        double getArea() const;
+        std::pair<vec3, vec3> getRandomPoint() const;
 
         friend std::ostream & operator<<( std::ostream & os, Triangle t );
 };

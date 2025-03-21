@@ -1,45 +1,7 @@
 #include "Camera.h"
 
-#include <fstream>
-#include <sstream>
-
-Camera::Camera( const std::string & filename ) {
-    std::ifstream file( filename );
-
-    if ( !file.is_open() ) 
-        throw std::runtime_error( "Cannot open file: " + filename );
-    
-    std::string line;
-    
-    // read pos
-    std::getline( file, line );
-    std::getline( file, line );
-    m_Position = readVector( line );
-
-    // read up
-    std::getline( file, line );
-    m_Up = readVector( line );
-
-    // read dir
-    std::getline( file, line );
-    m_Direction = readVector( line );
-
-    // read fov
-    std::getline( file, line );
-    std::stringstream ss( line );
-    std::string propertyName;
-    ss >> propertyName >> m_FOV;
-
-    file.close();
-}
-
-vec3 Camera::readVector( const std::string & line ) {
-    std::stringstream ss( line );
-    std::string propertyName;
-    double x, y, z;
-    ss >> propertyName >> x >> y >> z;
-    return vec3( x, y, z );
-}
+Camera::Camera( const vec3 & position, const vec3 & up, const vec3 & direction, double fov )
+    : m_Position( position ), m_Up( up ), m_Direction( direction ), m_FOV( fov ) {}
 
 vec3 Camera::getPosition() {
     return m_Position;

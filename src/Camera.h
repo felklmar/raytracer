@@ -8,10 +8,9 @@ class Camera {
         vec3 m_Up;
         vec3 m_Direction;
         double m_FOV;
-
-        vec3 readVector( const std::string & line );
     public:
-        Camera( const std::string & filename );
+        Camera() = default;
+        Camera( const vec3 & position, const vec3 & up, const vec3 & direction, double fov );
 
         vec3 getPosition();
         vec3 getUp();
@@ -19,4 +18,4 @@ class Camera {
         double getFOV();
 
         friend std::ostream & operator<<( std::ostream & os, Camera c );
-};
+}; 
