@@ -64,7 +64,7 @@ vec3 Raytracer::traceRay( size_t depth, const Ray & ray, const std::vector<Trian
     if ( !intersection.second ) return vec3();  // No intersection, return black
 
     vec3 color;
-    vec3 normal = intersection.second->interpolateNormal( intersection.first );
+    vec3 normal = intersection.second->interpolateNormal( intersection.first ).normalize();
 
     // Loop over each light source in the scene
     for ( auto l : lights ) {
@@ -95,14 +95,40 @@ vec3 Raytracer::traceRay( size_t depth, const Ray & ray, const std::vector<Trian
         }
     }
 
-    vec3 colorR;
+    vec3 colorR, colorT;
     if ( depth < options.maxRecursionDepth ) {
+        
         vec3 v = ( -ray.getDirection() ).normalize();
-        vec3 reflectedDir = ( 2 * normal * vec3::dot( normal, v ) - v ).normalize(); 
-        Ray reflectedRay( intersection.first, reflectedDir );
-        colorR = intersection.second->getMaterial().getSpecular() * traceRay( depth + 1, reflectedRay, triangles, lights );
-        //vec3 colorT = traceRay();
+
+        // reflected ray
+        if ( intersection.second->getMaterial().getSpecular().length() > 1e-9 ) {
+            vec3 reflectedDir = ( 2 * normal * vec3::dot( normal, v ) - v ).normalize(); 
+            vec3 reflectedOrigin = intersection.first + normal * 1e-9;
+            Ray reflectedRay( reflectedOrigin, reflectedDir );
+            colorR = intersection.second->getMaterial().getSpecular() * traceRay( depth + 1, reflectedRay, triangles, lights );
+        }
+
+        // refracted ray 
+        if ( intersection.second->getMaterial().getTransimittance().length() > 1e-9 ) {     
+            double iorSrc = 1.0;
+            double iorDst = intersection.second->getMaterial().getIOR();
+            double dot = vec3::dot( v, normal );
+
+            if ( dot < 0.0 ) {
+                normal = -normal;
+                std::swap( iorSrc, iorDst );
+            }
+            
+            double eta = iorSrc / iorDst;
+            double k = 1.0 - eta * eta * ( 1.0 - dot * dot );
+            if ( k > 0.0 ) {
+                vec3 refractedDir = ( - eta * v + ( eta * dot - std::sqrt( k ) ) * normal ).normalize();
+                vec3 refractedOrigin = intersection.first + refractedDir * 1e-9;
+                Ray refractedRay( refractedOrigin, refractedDir );
+                colorT = intersection.second->getMaterial().getTransimittance() * traceRay( depth + 1, refractedRay, triangles, lights );
+            }
+        }
     }
 
-    return color + colorR;
+    return color + colorR + colorT;
 }

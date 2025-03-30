@@ -112,6 +112,7 @@ void Scene::loadObj( const std::string & filename ) {
                 vec3( m.specular[0], m.specular[1], m.specular[2] ),
                 vec3( m.ambient[0], m.ambient[1], m.ambient[2] ),
                 vec3( m.emission[0], m.emission[1], m.emission[2] ),
+                vec3( m.transmittance[0], m.transmittance[1], m.transmittance[2] ),
                 m.shininess, m.ior 
             );
 
