@@ -3,6 +3,7 @@
 #include "Camera.h"
 #include "Triangle.h"
 #include "vec3.h"
+#include "Octree.h"
 
 #include <vector>
 #include <memory>
@@ -12,9 +13,9 @@ class Scene {
         Camera m_Camera;
         std::vector<Triangle> m_Triangles;
         std::vector<std::shared_ptr<Triangle>> m_Lights;
+        std::unique_ptr<Octree> m_Octree;
 
-        vec3 readVector( const std::string & line );
-        
+        vec3 readVector( const std::string & line );        
         void loadCamera( std::ifstream & filestream );
         void loadObj( const std::string & filename );
     public:

@@ -24,6 +24,10 @@ Scene::Scene( const std::string & filename ) {
     loadCamera( file );
 
     file.close();
+
+    std::cerr << "Building octree" << std::endl;
+    m_Octree = std::make_unique<Octree>( m_Triangles );
+    m_Octree->printOctree();
 }
 
 vec3 Scene::readVector( const std::string & line ) {

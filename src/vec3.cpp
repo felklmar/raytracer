@@ -71,13 +71,21 @@ vec3 vec3::cross( const vec3 & v1, const vec3 & v2 ) {
 }
 
 double & vec3::operator[]( int index ) {
-    switch (index) {
+    switch ( index ) {
         case 0: return x;
         case 1: return y;
         case 2: return z;
     }
+    throw std::out_of_range("vec3 index out of bounds");
+}
 
-    throw;
+const double & vec3::operator[]( int index ) const { 
+    switch ( index ) {
+        case 0: return x;
+        case 1: return y;
+        case 2: return z;
+    }
+    throw std::out_of_range("vec3 index out of bounds");
 }
 
 vec3 operator*( double a, const vec3 & v ) {

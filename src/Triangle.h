@@ -2,6 +2,7 @@
 
 #include "vec3.h"
 #include "Material.h"
+#include "BoundingBox.h"
 
 class Triangle {
     private:
@@ -22,5 +23,6 @@ class Triangle {
         double getArea() const;
         std::pair<vec3, vec3> getRandomPoint() const;
 
+        BoundingBox getBounds() const;
         friend std::ostream & operator<<( std::ostream & os, Triangle t );
 };

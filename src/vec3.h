@@ -30,6 +30,7 @@ struct vec3 {
     static vec3 cross( const vec3 & v1, const vec3 & v2 );
 
     double & operator[]( int index );
+    const double & operator[]( int index ) const;
     friend vec3 operator*( double a, const vec3 & v );
     friend std::ostream & operator<<( std::ostream & os, vec3 vec );
 };

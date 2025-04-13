@@ -1,9 +1,10 @@
 #pragma once
 
 #include "vec3.h"
-#include "Triangle.h"
 
 #include <vector>
+
+class Triangle;
 
 class Ray {
     private:
@@ -13,8 +14,8 @@ class Ray {
         Ray( const vec3 & origin, const vec3 & direction );
         double triangleIntersection( const Triangle & triangle, bool cullBackfaces = true ) const; 
 
-        const vec3 & getOrigin() const;
-        const vec3 & getDirection() const;
+        vec3 getOrigin() const;
+        vec3 getDirection() const;
 
         friend std::ostream & operator<<( std::ostream & os, Ray ray );
 };

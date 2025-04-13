@@ -77,6 +77,14 @@ std::pair<vec3, vec3> Triangle::getRandomPoint() const {
     return { point, normal };
 }
 
+BoundingBox Triangle::getBounds() const {
+    BoundingBox bounds;
+    bounds.expand( m_A );
+    bounds.expand( m_B );
+    bounds.expand( m_C );
+    return bounds;
+}
+
 std::ostream & operator<<( std::ostream & os, Triangle t ) {
     os << "vertices: " << t.m_A << ", " << t.m_B << ", " << t.m_C << "\n";
     os << "normals: " << t.m_An << ", " << t.m_Bn << ", " << t.m_Cn;

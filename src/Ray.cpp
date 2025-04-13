@@ -1,4 +1,5 @@
 #include "Ray.h"
+#include "Triangle.h"
 
 #include <cfloat>
 #include <cmath>
@@ -35,11 +36,11 @@ double Ray::triangleIntersection( const Triangle & triangle, bool cullBackfaces 
     return d_inv * vec3::dot( e2, r );
 }
 
-const vec3 & Ray::getOrigin() const {
+vec3 Ray::getOrigin() const {
     return m_Origin;
 }
 
-const vec3 & Ray::getDirection() const{
+vec3 Ray::getDirection() const{
     return m_Direction;
 }
         
