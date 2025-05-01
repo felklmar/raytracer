@@ -25,8 +25,12 @@ Scene::Scene( const std::string & filename ) {
 
     file.close();
 
+    int i = 0;
+    for ( auto t : m_Triangles )
+        std::cout << i++ << "   " << t << std::endl;
+
     std::cerr << "Building octree" << std::endl;
-    m_Octree = std::make_unique<Octree>( m_Triangles );
+    m_Octree = std::make_unique<Octree>( m_Triangles, 2 );
     m_Octree->printOctree();
 }
 

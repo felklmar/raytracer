@@ -8,11 +8,13 @@
 #include <iomanip>
 
 struct OctreeNode {
+    int m_Id;
     BoundingBox m_Bounds;
     std::unique_ptr<OctreeNode> m_Children[8];
     std::vector<size_t> m_TriangleIndices;
 
     OctreeNode(); 
+    OctreeNode( int id ); 
 };
 
 struct HitInfo {
@@ -26,7 +28,7 @@ class Octree {
         int m_MaxDepth; 
 
         void buildNode( OctreeNode* node, const std::vector<size_t> & indices, int depth ); 
-        void subdivideNode( int depth, const BoundingBox & parentBounds, OctreeNode* parentNode );
+        void subdivideNode( OctreeNode* parentNode );
         //void naiveIntersect( OctreeNode* node, const Ray & ray, HitInfo & hitInfo, float & closestT, bool & hit ) const; 
         BoundingBox calculateBounds( const std::vector<Triangle> & triangles ) const;
         
@@ -34,16 +36,23 @@ class Octree {
             if (!node) return;
     
             // Indentation for better visualization
-            std::cout << std::setw( depth * 4 ) << "" << "Depth " << depth << " - Bounds: " << node->m_Bounds
-                      << ", Triangles: " << node->m_TriangleIndices.size() << std::endl;
-    
+            std::cout << std::setw( depth * 4 ) << "" << "Depth " << depth 
+                      << " - Id: " << node->m_Id
+                      << ", Bounds: " << node->m_Bounds
+                      << ", Triangles: " << node->m_TriangleIndices.size() << " - [ ";
+            
+            for ( auto ti : node->m_TriangleIndices )
+                std::cout << ti << " ";
+
+            std::cout << "]" << std::endl;
+
             for (int i = 0; i < 8; ++i) {
                 printOctreeNode( node->m_Children[i].get(), depth + 1 );
             }
         }
     public:
         Octree();
-        Octree( const std::vector<Triangle> & triangles, int maxDepth = 2 ); 
+        Octree( const std::vector<Triangle> & triangles, int maxDepth = 3 ); 
 
         void build(); 
         //bool intersect( const Ray & ray, HitInfo & hitInfo ) const; 

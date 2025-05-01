@@ -20,8 +20,41 @@ const vec3 & Triangle::getC() const {
     return m_C;
 }
 
+vec3 Triangle::getAB() const {
+    return m_B - m_A;
+}
+
+vec3 Triangle::getBC() const {
+    return m_C - m_B;
+}
+
+vec3 Triangle::getCA() const {
+    return m_A - m_C;
+}
+
 const Material & Triangle::getMaterial() const {
     return m_Material;
+}
+
+std::pair<vec3,vec3> Triangle::getBounds() const {
+    vec3 min = std::numeric_limits<float>::infinity();
+    vec3 max = -std::numeric_limits<float>::infinity();
+
+    for ( auto pt : { m_A, m_B, m_C } ) {
+        min.x = std::min( min.x, pt.x );
+        min.y = std::min( min.y, pt.y );
+        min.z = std::min( min.z, pt.z );
+
+        max.x = std::max( max.x, pt.x );
+        max.y = std::max( max.y, pt.y );
+        max.z = std::max( max.z, pt.z );
+    }
+
+    return std::make_pair( min, max );
+}
+
+vec3 Triangle::getNormal() const {
+    return ( m_B - m_A ).cross( m_C - m_A ).normalize();
 }
 
 vec3 Triangle::interpolateNormal( const vec3 & point ) const {
@@ -58,7 +91,7 @@ double Triangle::getArea() const {
 
 std::pair<vec3, vec3> Triangle::getRandomPoint() const {
     static std::default_random_engine rng;
-    static std::uniform_real_distribution<double> dist(0.0, 1.0);
+    static std::uniform_real_distribution<double> dist( 0.0, 1.0 );
 
     // Generate random numbers
     double r1 = dist( rng );
@@ -75,14 +108,6 @@ std::pair<vec3, vec3> Triangle::getRandomPoint() const {
     auto normal = interpolateNormal( point );
 
     return { point, normal };
-}
-
-BoundingBox Triangle::getBounds() const {
-    BoundingBox bounds;
-    bounds.expand( m_A );
-    bounds.expand( m_B );
-    bounds.expand( m_C );
-    return bounds;
 }
 
 std::ostream & operator<<( std::ostream & os, Triangle t ) {
