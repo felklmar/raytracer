@@ -1,7 +1,7 @@
 #pragma once
 
 #include "BoundingBox.h"
-#include "Triangle.h"
+#include "IntersectionData.h"
 
 #include <vector>
 #include <memory>
@@ -17,21 +17,20 @@ struct OctreeNode {
     OctreeNode( int id ); 
 };
 
-struct HitInfo {
-
-};
-
 class Octree {
     private:
         std::unique_ptr<OctreeNode> m_Root; 
         const std::vector<Triangle>* m_Triangles; 
         int m_MaxDepth; 
+        size_t m_MinTrianglesInCell;
 
         void buildNode( OctreeNode* node, const std::vector<size_t> & indices, int depth ); 
         void subdivideNode( OctreeNode* parentNode );
-        //void naiveIntersect( OctreeNode* node, const Ray & ray, HitInfo & hitInfo, float & closestT, bool & hit ) const; 
         BoundingBox calculateBounds( const std::vector<Triangle> & triangles ) const;
-        
+        void intersectRayNode( const OctreeNode * node, const Ray & ray, IntersectionData & closestIntersection ) const;
+        bool rayAABBIntersect( const BoundingBox & bounds, const Ray & ray, double & tNear, double & tFar ) const;
+        void getTraversalOrder( const BoundingBox & bounds,  const Ray & ray, int outOrder[8] ) const;
+
         void printOctreeNode(const OctreeNode* node, int depth) const {
             if (!node) return;
     
@@ -52,10 +51,10 @@ class Octree {
         }
     public:
         Octree();
-        Octree( const std::vector<Triangle> & triangles, int maxDepth = 3 ); 
+        Octree( const std::vector<Triangle> & triangles, int maxDepth = 3, int minTrianglesInCell = 5 ); 
 
         void build(); 
-        //bool intersect( const Ray & ray, HitInfo & hitInfo ) const; 
+        IntersectionData intersect( const Ray & ray ) const;
 
         void printOctree() const {
             if ( m_Root ) {

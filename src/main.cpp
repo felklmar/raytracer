@@ -8,8 +8,8 @@
 #include "Scene.h"
 #include "Options.h"
 
-#define WIDTH 200
-#define HEIGHT 200
+#define WIDTH 800
+#define HEIGHT 800
 
 template <typename T>
 inline T clamp( T val, T low, T high ) {

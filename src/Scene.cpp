@@ -25,13 +25,13 @@ Scene::Scene( const std::string & filename ) {
 
     file.close();
 
-    int i = 0;
-    for ( auto t : m_Triangles )
-        std::cout << i++ << "   " << t << std::endl;
+    //int i = 0;
+    //for ( auto t : m_Triangles )
+    //    std::cout << i++ << "   " << t << std::endl;
 
-    std::cerr << "Building octree" << std::endl;
-    m_Octree = std::make_unique<Octree>( m_Triangles, 2 );
-    m_Octree->printOctree();
+    //std::cerr << "Building octree" << std::endl;
+    m_Octree = std::make_unique<Octree>( m_Triangles, 5, 10 );
+    //m_Octree->printOctree();
 }
 
 vec3 Scene::readVector( const std::string & line ) {
@@ -153,7 +153,7 @@ std::vector<vec3> Scene::render( size_t width, size_t height ) {
 
             Ray primaryRay( m_Camera.getPosition(), r_xy );
 
-            vec3 color = Raytracer::traceRay( 0, primaryRay, m_Triangles, m_Lights );
+            vec3 color = Raytracer::traceRay( 0, primaryRay, *m_Octree, m_Lights );
             colors.push_back( color );
         }    
     }

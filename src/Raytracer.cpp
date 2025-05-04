@@ -4,33 +4,38 @@
 #include <cmath>
 #include <algorithm>
 
-std::pair<vec3, std::shared_ptr<Triangle>> Raytracer::findNearestIntersection( const Ray & ray, const std::vector<Triangle> & triangles ) {
-    double t = std::numeric_limits<double>::infinity();
-    std::shared_ptr<Triangle> trianglePtr; 
+IntersectionData Raytracer::findNearestIntersection( const Ray & ray, const std::vector<Triangle> & triangles ) {
+    IntersectionData nearestHit;
 
     for ( const Triangle & triangle : triangles ) {
-        double tNew = ray.triangleIntersection( triangle );
-        if ( tNew >= 0 && tNew < t ) {
-            t = tNew;
-            trianglePtr = std::make_shared<Triangle>( triangle );
+        IntersectionData hit = ray.triangleIntersection( triangle ); 
+
+        if ( hit.m_Hit && hit.m_T < nearestHit.m_T ) {
+            nearestHit = hit;
         }
     }
 
-    vec3 intersection = ( trianglePtr ) ? ray.getOrigin() + t * ray.getDirection() : vec3(); 
-    return std::make_pair( intersection, trianglePtr );
+    return nearestHit;
 }
 
+/*
 bool Raytracer::isLightVisible( const Ray & ray, const std::vector<Triangle> & triangles, double distance ) {
-    for ( const Triangle &triangle : triangles ) {
-        // Perform intersection check
-        double t = ray.triangleIntersection( triangle );
-        
+    for ( const Triangle & triangle : triangles ) {
+        // Perform intersection check using the IntersectionData
+        IntersectionData hit = ray.triangleIntersection( triangle ); 
+
         // If an intersection is found within the distance to the light and not behind the ray's origin
-        if ( t > 0 && t < distance ) {
-            return false;
+        if ( hit.m_Hit && hit.m_T > 1e-9 && hit.m_T < distance ) {
+            return false; // Light is blocked by this triangle
         }
     }
     return true;  // No intersections, light is visible
+}
+*/
+
+bool Raytracer::isLightVisible( const Ray & ray, const Octree & octree, double distance ) {
+    IntersectionData hit = octree.intersect( ray );
+    return ( !hit.m_Hit || hit.m_T > distance - 1e-9 );
 }
 
 vec3 Raytracer::calculatePhong( const Material & material, const vec3 & lightIntensity,
@@ -57,14 +62,14 @@ vec3 Raytracer::calculatePhong( const Material & material, const vec3 & lightInt
     return diffuse + specular + emissive;
 }
 
-vec3 Raytracer::traceRay( size_t depth, const Ray & ray, const std::vector<Triangle> & triangles, const std::vector<std::shared_ptr<Triangle>> & lights ) {
+vec3 Raytracer::traceRay( size_t depth, const Ray & ray, const Octree & octree, const std::vector<std::shared_ptr<Triangle>> & lights ) {
     // Find nearest intersection with scene triangles
-    auto intersection = findNearestIntersection( ray, triangles );
+    IntersectionData intersection = octree.intersect( ray );
 
-    if ( !intersection.second ) return vec3();  // No intersection, return black
+    if ( !intersection.m_Hit ) return vec3();  // No intersection, return black
 
     vec3 color;
-    vec3 normal = intersection.second->interpolateNormal( intersection.first ).normalize();
+    vec3 normal = intersection.m_HitTriangle->interpolateNormal( intersection.m_HitPoint ).normalize();
 
     // Loop over each light source in the scene
     for ( auto l : lights ) {
@@ -75,21 +80,21 @@ vec3 Raytracer::traceRay( size_t depth, const Ray & ray, const std::vector<Trian
         for ( size_t i = 0; i < options.pointsPerLight; ++i ) {
             auto [lightPoint, lightNormal] = l->getRandomPoint();  
 
-            vec3 vectorToLight = lightPoint - intersection.first; 
+            vec3 vectorToLight = lightPoint - intersection.m_HitPoint; 
             vec3 dirToLight = vectorToLight.normalize();
             double distance = vectorToLight.length();
 
             // Create a small offset to avoid self-shadowing issues
-            Ray shadowRay( intersection.first + normal * 1e-9, dirToLight );
+            Ray shadowRay( intersection.m_HitPoint + normal * 1e-9, dirToLight );
 
             // Check if the light is visible at this intersection point
-            if ( isLightVisible( shadowRay, triangles, distance - 1e-4 ) ) {
+            if ( isLightVisible( shadowRay, octree, distance - 1e-4 ) ) {
                 // Calculate the weight for the area light (assuming you are using a similar formula)
                 auto dot = std::max( 0.0, lightNormal.dot( -dirToLight ) );  
                 auto weight = lightArea * dot / ( static_cast<double>( options.pointsPerLight ) * ( distance * distance ) );  
 
                 // Calculate the Phong shading model with the given light intensity
-                color += calculatePhong( intersection.second->getMaterial(), weight * lightEmission, dirToLight,
+                color += calculatePhong( intersection.m_HitTriangle->getMaterial(), weight * lightEmission, dirToLight,
                                          normal, -ray.getDirection() );
             }
         }
@@ -101,17 +106,17 @@ vec3 Raytracer::traceRay( size_t depth, const Ray & ray, const std::vector<Trian
         vec3 v = ( -ray.getDirection() ).normalize();
 
         // reflected ray
-        if ( intersection.second->getMaterial().getSpecular().length() > 1e-9 ) {
+        if ( intersection.m_HitTriangle->getMaterial().getSpecular().length() > 1e-9 ) {
             vec3 reflectedDir = ( 2 * normal * vec3::dot( normal, v ) - v ).normalize(); 
-            vec3 reflectedOrigin = intersection.first + normal * 1e-9;
+            vec3 reflectedOrigin = intersection.m_HitPoint + normal * 1e-9;
             Ray reflectedRay( reflectedOrigin, reflectedDir );
-            colorR = intersection.second->getMaterial().getSpecular() * traceRay( depth + 1, reflectedRay, triangles, lights );
+            colorR = intersection.m_HitTriangle->getMaterial().getSpecular() * traceRay( depth + 1, reflectedRay, octree, lights );
         }
 
         // refracted ray 
-        if ( intersection.second->getMaterial().getTransimittance().length() > 1e-9 ) {     
+        if ( intersection.m_HitTriangle->getMaterial().getTransimittance().length() > 1e-9 ) {     
             double iorSrc = 1.0;
-            double iorDst = intersection.second->getMaterial().getIOR();
+            double iorDst = intersection.m_HitTriangle->getMaterial().getIOR();
             double dot = vec3::dot( v, normal );
 
             if ( dot < 0.0 ) {
@@ -123,9 +128,9 @@ vec3 Raytracer::traceRay( size_t depth, const Ray & ray, const std::vector<Trian
             double k = 1.0 - eta * eta * ( 1.0 - dot * dot );
             if ( k > 0.0 ) {
                 vec3 refractedDir = ( - eta * v + ( eta * dot - std::sqrt( k ) ) * normal ).normalize();
-                vec3 refractedOrigin = intersection.first + refractedDir * 1e-9;
+                vec3 refractedOrigin = intersection.m_HitPoint + refractedDir * 1e-9;
                 Ray refractedRay( refractedOrigin, refractedDir );
-                colorT = intersection.second->getMaterial().getTransimittance() * traceRay( depth + 1, refractedRay, triangles, lights );
+                colorT = intersection.m_HitTriangle->getMaterial().getTransimittance() * traceRay( depth + 1, refractedRay, octree, lights );
             }
         }
     }
