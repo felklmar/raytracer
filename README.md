@@ -1,6 +1,6 @@
 # 3D Triangle Mesh Ray Tracer
 
-![Ray Tracer Example](example.jpeg)
+![Ray Tracer Example](example.png)
 
 A lightweight physically based rendering (PBR) engine built from scratch in C++17. This project utilizes standard ray tracing models alongside advanced spatial acceleration to read, compute, and render photorealistic 3D imagery directly from Wavefront `.obj` files.
 
@@ -22,22 +22,22 @@ A lightweight physically based rendering (PBR) engine built from scratch in C++1
 ## Project Architecture
 
 ```text
-├── scenes/                 # Wavefront .obj and .mtl scene data assets
-└── src/                    # Primary implementation directory
-    ├── BoundingBox.[cpp/h] # AABB implementations & Separating Axis Theorem (SAT) tests
-    ├── Camera.[cpp/h]      # Field of view (FOV), target vectors, and frame math
-    ├── IntersectionData.[cpp/h]# Tracks ray collision results (Hit status, T-value, normal points)
-    ├── main.cpp            # Entry point, configuration handling, and frame processing
-    ├── Makefile            # Automated multi-target GCC build layout
-    ├── Material.[cpp/h]    # Stores Diffuse, Specular, Emissive, Transparency, and IOR metrics
-    ├── Octree.[cpp/h]      # Hierarchical division nodes for accelerated tracing
-    ├── Options.[cpp/h]     # Runtime rendering arguments and depth values
-    ├── Ray.[cpp/h]         # Ray generation and Möller–Trumbore intersection math
-    ├── Raytracer.[cpp/h]   # Primary Phong shading calculation loop and recursive tracing
-    ├── Scene.[cpp/h]       # Handles object file loading and image color grids
-    ├── tiny_obj_loader.h   # Header library dependency for .obj parsing
-    ├── Triangle.[cpp/h]    # Handles basic primitive properties, surface normals, and areas
-    └── vec3.[cpp/h]        # Performance-optimized 3D Vector mathematical toolkit
+├── scenes/                         # Wavefront .obj and .mtl scene data assets
+└── src/                            # Primary implementation directory
+    ├── BoundingBox.[cpp/h]         # AABB implementations & Separating Axis Theorem (SAT) tests
+    ├── Camera.[cpp/h]              # Field of view (FOV), target vectors, and frame math
+    ├── IntersectionData.[cpp/h]    # Tracks ray collision results (Hit status, T-value, normal points)
+    ├── main.cpp                    # Entry point, configuration handling, and frame processing
+    ├── Makefile                    # Automated multi-target GCC build layout
+    ├── Material.[cpp/h]            # Stores Diffuse, Specular, Emissive, Transparency, and IOR metrics
+    ├── Octree.[cpp/h]              # Hierarchical division nodes for accelerated tracing
+    ├── Options.[cpp/h]             # Runtime rendering arguments and depth values
+    ├── Ray.[cpp/h]                 # Ray generation and Möller–Trumbore intersection math
+    ├── Raytracer.[cpp/h]           # Primary Phong shading calculation loop and recursive tracing
+    ├── Scene.[cpp/h]               # Handles object file loading and image color grids
+    ├── tiny_obj_loader.h           # Header library dependency for .obj parsing
+    ├── Triangle.[cpp/h]            # Handles basic primitive properties, surface normals, and areas
+    └── vec3.[cpp/h]                # Performance-optimized 3D Vector mathematical toolkit
 ```
 
 ---
@@ -121,7 +121,7 @@ fov 0.6
 
 ---
 
-## 🛠️ Technical Details & Math Underlying
+## Technical Details & Math Underlying
 
 The engine relies on classic ray tracing physics coupled with strict spatial partition trees to calculate lighting values efficiently across complex geometric inputs:
 
@@ -158,3 +158,7 @@ It calculates the intersection entry time ($t_{near}$) for all 8 subdivided chil
 ```text
 Ray Direction (X+, Y+, Z+) ---> Traces Octant [0, 1, 2, 3] before checking [4, 5, 6,7]
 ```
+
+## Disclaimer
+
+This README file was generated using Google Gemini, so it might have gotten some things wrong. What I checked looks correct, but be aware of this.
