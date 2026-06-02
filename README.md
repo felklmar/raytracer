@@ -1,93 +1,160 @@
-# NI-PG1
+# 3D Triangle Mesh Ray Tracer
 
+![Ray Tracer Example](example.jpeg)
 
+A lightweight physically based rendering (PBR) engine built from scratch in C++17. This project utilizes standard ray tracing models alongside advanced spatial acceleration to read, compute, and render photorealistic 3D imagery directly from Wavefront `.obj` files.
 
-## Getting started
+---
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Key Features
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+* **Wavefront OBJ Mesh Support**: Integrates `tiny_obj_loader.h` to parse and render arbitrary 3D triangular geometry, including individual vertex normals and associated material properties (`.mtl`).
+* **Octree Spatial Acceleration Tree**: Optimizes ray-scene geometric intersection testing by dynamically building an axis-aligned bounding box (AABB) hierarchy. Uses smart traversal order logic to trace complex meshes in seconds instead of hours.
+* **Area Light Source Simulation**: Simulates true soft shadows by utilizing multi-sample random sampling across polygonal area lights instead of calculating simple point light sources.
+* **Whitted-Style Recursive Path Splitting**:
+    * **Phong Shading Architecture**: Computes diffuse, specular highlights, and emissive properties.
+    * **True Specular Reflections**: Traces recursive mirror bounces.
+    * **Refraction & Transparency**: Implements Snell's Law and Fresnel equations with customizable Index of Refraction (IOR) thresholds for glass and water rendering.
+* **Direct PPM Format Output**: Exports standard high-fidelity `P3` Netpbm/PPM image files directly upon task execution.
 
-## Add your files
+---
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+## Project Architecture
 
+```text
+├── scenes/                 # Wavefront .obj and .mtl scene data assets
+└── src/                    # Primary implementation directory
+    ├── BoundingBox.[cpp/h] # AABB implementations & Separating Axis Theorem (SAT) tests
+    ├── Camera.[cpp/h]      # Field of view (FOV), target vectors, and frame math
+    ├── IntersectionData.[cpp/h]# Tracks ray collision results (Hit status, T-value, normal points)
+    ├── main.cpp            # Entry point, configuration handling, and frame processing
+    ├── Makefile            # Automated multi-target GCC build layout
+    ├── Material.[cpp/h]    # Stores Diffuse, Specular, Emissive, Transparency, and IOR metrics
+    ├── Octree.[cpp/h]      # Hierarchical division nodes for accelerated tracing
+    ├── Options.[cpp/h]     # Runtime rendering arguments and depth values
+    ├── Ray.[cpp/h]         # Ray generation and Möller–Trumbore intersection math
+    ├── Raytracer.[cpp/h]   # Primary Phong shading calculation loop and recursive tracing
+    ├── Scene.[cpp/h]       # Handles object file loading and image color grids
+    ├── tiny_obj_loader.h   # Header library dependency for .obj parsing
+    ├── Triangle.[cpp/h]    # Handles basic primitive properties, surface normals, and areas
+    └── vec3.[cpp/h]        # Performance-optimized 3D Vector mathematical toolkit
 ```
-cd existing_repo
-git remote add origin https://gitlab.fit.cvut.cz/felklmar/ni-pg1.git
-git branch -M main
-git push -uf origin main
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+You need a terminal environment with a standard C++ compiler supporting **C++17** or higher.
+* `g++` / GCC compiler
+* `make` build utility
+
+### Compilation
+
+Navigate inside the `src/` directory and execute the local `Makefile` rules to build the release configuration:
+
+```bash
+cd src
+make
 ```
 
-## Integrate with your tools
+This generates a compiled binary executable file named `raytracer` one directory level higher (`../raytracer`).
 
-- [ ] [Set up project integrations](https://gitlab.fit.cvut.cz/felklmar/ni-pg1/-/settings/integrations)
+To wipe object files and binary compilation assets clean, use:
 
-## Collaborate with your team
+```bash
+make clean
+```
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+---
 
-## Test and Deploy
+## Usage Guide
 
-Use the built-in continuous integration in GitLab.
+The compiled engine relies on specific command-line arguments to load scenes and adjust precision parameters:
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+```bash
+./raytracer <scene-config-file> <output-name.ppm> <width> <height> <recursion-depth> <light-samples> <octree-depth> <min-aabb-triangles>
+```
 
-***
+### Argument Parameters breakdown:
 
-# Editing this README
+| Parameter | Type | Purpose / Description | Example Value |
+| :--- | :--- | :--- | :--- |
+| `scene-config-file` | `string` | Relative address path pointing to your scene loader specification | `scenes/cornell.txt` |
+| `output-name.ppm` | `string` | Target name for the generated Netpbm image output mapping | `output.ppm` |
+| `width` | `integer` | Pixel resolution width size for the final rendered view frame | `1280` |
+| `height` | `integer` | Pixel resolution height size for the final rendered view frame | `720` |
+| `recursion-depth` | `integer` | Maximum threshold constraint allowed for reflective/refractive ray bounces | `5` |
+| `light-samples` | `integer` | Number of rays cast per area light to sample for soft shadow generation | `32` |
+| `octree-depth` | `integer` | Max allowed structural subdivide depth limits for node grouping partitions | `6` |
+| `min-aabb-triangles`| `integer` | Minimum collection size of polygon data allowed before making a new leaf cell | `10` |
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+### Execution Example:
 
-## Suggestions for a good README
+```bash
+./raytracer scenes/cornell.txt output.ppm 1920 1080 5 64 6 10
+```
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+### Scene Configuration File Format
 
-## Name
-Choose a self-explaining name for your project.
+**Note on Scene Configuration**: The `<scene-config-file>` (e.g., `scenes/CornellBox-Sphere.txt`) should be a simple plain-text file where the **first line** dictates the relative filename of the target `.obj` mesh situated inside the `scenes/` directory. The subsequent lines must specify the camera position, up vector, view direction, and FOV parameters respectively.
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+The scene configuration parameter targets a flat text file that coordinates the underlying 3D model asset with its structural camera placement variables. 
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+Below is an example of how your scene file (e.g., `scenes/CornellBox-Sphere.txt`) should be formatted:
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+```text
+CornellBox-Sphere.obj
+pos 0 1 4.42 
+up 0 1 0 
+dir 0 0 -1
+fov 0.6
+```
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+#### Line Breakdown:
+1. **Line 1**: The filename of the actual Wavefront 3D mesh model (automatically loaded relative to the `scenes/` folder directory).
+2. **Line 2 (`pos`)**: The 3D global coordinate space position vector $\mathbf{O} = (x, y, z)$ of the camera.
+3. **Line 3 (`up`)**: The directional alignment vector identifying which orientation axis points upward in world coordinates.
+4. **Line 4 (`dir`)**: The vector defining the exact target line-of-sight tracking path forward from the lens origin.
+5. **Line 5 (`fov`)**: The horizontal/vertical angle threshold limit constraint (expressed cleanly in radians) to define frame zoom projection behavior.
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+---
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+## 🛠️ Technical Details & Math Underlying
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+The engine relies on classic ray tracing physics coupled with strict spatial partition trees to calculate lighting values efficiently across complex geometric inputs:
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+### 1. Triangle Intersections (Möller–Trumbore Algorithm)
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+Instead of calculating explicit plane equations for every triangle in a mesh, `Ray::triangleIntersection` implements the **Möller–Trumbore intersection algorithm**. This projects the ray origin into barycentric coordinates $(u, v)$ relative to the triangle vertices $A$, $B$, and $C$. 
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+Given a ray $R(t) = \mathbf{O} + t\mathbf{D}$ and edge vectors $\mathbf{E_1} = B - A$ and $\mathbf{E_2} = C - A$, the intersection point is solved via Cramer's Rule:
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+$$\begin{bmatrix} t \\ u \\ v \end{bmatrix} = \frac{1}{\mathbf{P} \cdot \mathbf{E_1}} \begin{bmatrix} \mathbf{Q} \cdot \mathbf{E_2} \\ \mathbf{P} \cdot \mathbf{T} \\ \mathbf{Q} \cdot \mathbf{D} \end{bmatrix}$$
 
-## License
-For open source projects, say how it is licensed.
+Where:
+* $\mathbf{P} = \mathbf{D} \times \mathbf{E_2}$
+* $\mathbf{T} = \mathbf{O} - A$
+* $\mathbf{Q} = \mathbf{T} \times \mathbf{E_1}$
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+A valid intersection occurs only if $u \ge 0$, $v \ge 0$, and $u + v \le 1$.
+
+### 2. Bounding Box Intersections (Separating Axis Theorem)
+
+To safely register triangle meshes inside spatial boundaries, `BoundingBox::intersects` checks overlap using the **Separating Axis Theorem (SAT)**. It tests a total of **13 separating axes** to confirm whether an intersection exists:
+* **3 Principal Axes**: Box face normals (X, Y, and Z unit vectors).
+* **1 Triangle Normal**: Face normal vector of the target triangle.
+* **9 Edge Cross Products**: Cross products combining the 3 box edges with the 3 triangle edges.
+
+If the projections of the box and triangle onto *any* of these 13 axes fail to overlap, the theorem guarantees no geometric intersection exists, allowing the engine to safely skip testing that leaf node.
+
+### 3. Accelerated Octree Navigation
+
+Rather than stepping through child boxes at random, `Octree::getTraversalOrder` analyzes the 3D directional signs (positive/negative) of the incoming ray vector $\mathbf{D}$. 
+
+It calculates the intersection entry time ($t_{near}$) for all 8 subdivided child nodes simultaneously and sorts them using `std::sort`. The ray then steps through child voxels along its immediate line of sight:
+
+```text
+Ray Direction (X+, Y+, Z+) ---> Traces Octant [0, 1, 2, 3] before checking [4, 5, 6,7]
+```
