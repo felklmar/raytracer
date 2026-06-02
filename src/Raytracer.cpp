@@ -108,8 +108,8 @@ vec3 Raytracer::traceRay( size_t depth, const Ray & ray, const Octree & octree, 
         // reflected ray
         if ( intersection.m_HitTriangle->getMaterial().getSpecular().length() > 1e-9 ) {
             vec3 reflectedDir = ( 2 * normal * vec3::dot( normal, v ) - v ).normalize(); 
-            vec3 reflectedOrigin = intersection.m_HitPoint + normal * 1e-9;
-            Ray reflectedRay( reflectedOrigin, reflectedDir );
+            //vec3 reflectedOrigin = intersection.m_HitPoint + normal * 1e-9;
+            Ray reflectedRay(  intersection.m_HitPoint, reflectedDir );
             colorR = intersection.m_HitTriangle->getMaterial().getSpecular() * traceRay( depth + 1, reflectedRay, octree, lights );
         }
 

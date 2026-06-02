@@ -5,6 +5,7 @@
 
 #include "Ray.h"
 #include "Raytracer.h"
+#include "Options.h"
 
 #include <fstream>
 #include <sstream>
@@ -30,7 +31,7 @@ Scene::Scene( const std::string & filename ) {
     //    std::cout << i++ << "   " << t << std::endl;
 
     //std::cerr << "Building octree" << std::endl;
-    m_Octree = std::make_unique<Octree>( m_Triangles, 5, 10 );
+    m_Octree = std::make_unique<Octree>( m_Triangles, options.maxOctreeDepth, options.minAABBtriangles );
     //m_Octree->printOctree();
 }
 
@@ -146,6 +147,7 @@ std::vector<vec3> Scene::render( size_t width, size_t height ) {
     vec3 p_00 = m_Camera.getDirection() - 0.5 * g_w * b + 0.5 * g_h * m_Camera.getUp();
 
     std::vector<vec3> colors;
+    std::cerr << "processed rows: ";
     for ( size_t i = 0; i < height; i++ ) {
         for ( size_t j = 0; j < width; j++ ) {
             vec3 p_xy = p_00 + j * q_w - i * q_h;
@@ -156,6 +158,7 @@ std::vector<vec3> Scene::render( size_t width, size_t height ) {
             vec3 color = Raytracer::traceRay( 0, primaryRay, *m_Octree, m_Lights );
             colors.push_back( color );
         }    
+        std::cerr << i << " ";
     }
 
     return colors;

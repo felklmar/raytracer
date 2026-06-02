@@ -8,39 +8,39 @@
 #include "Scene.h"
 #include "Options.h"
 
-#define WIDTH 800
-#define HEIGHT 800
-
 template <typename T>
 inline T clamp( T val, T low, T high ) {
     return max( min( val, high ), low );
 }
 
 int main( int argc, char const *argv[] ) {
-    if ( argc < 2 ) {
-        std::cerr << "Usage: " << argv[0] << " <filename>" << std::endl;
+    if ( argc < 9 ) {
+        std::cerr << "Usage: " << argv[0] << " <filename> <output-name> <img-width> <img-height> <recursion-depth> <light-samples> <octree-depth> <min-aabb-triangles>" << std::endl;
         exit( EXIT_FAILURE );
     }
 
-    options.load( 100, 1 );
+    size_t width = atoi( argv[3] );
+    size_t height = atoi( argv[4] );
+    
+    options.load( atoi( argv[5] ), atoi( argv[6] ), atoi( argv[7] ), atoi( argv[8] ) );
 
     Scene scene( argv[1] );
-    std::vector<vec3> colors = scene.render( WIDTH, HEIGHT );
+    std::vector<vec3> colors = scene.render( width, height );
 
     // Use a vector for automatic memory management
-    std::vector<float> image( WIDTH * HEIGHT * 3 );
-    for ( int i = 0; i < WIDTH; ++i ) {
-        for ( int j = 0; j < HEIGHT; ++j ) {
+    std::vector<float> image( width * height * 3 );
+    for ( size_t i = 0; i < width; ++i ) {
+        for ( size_t j = 0; j < height; ++j ) {
             for ( int k = 0; k < 3; ++k ) {
-                image[3 * (j * WIDTH + i) + k] = colors[j * WIDTH + i][k] * 255;
+                image[3 * (j * width + i) + k] = colors[j * width + i][k] * 255;
             }
         }
     }
 
     // Image saving
-    std::ofstream output("output.ppm");
-    output << "P3\n" << WIDTH << " " << HEIGHT << "\n" << 255 << std::endl;
-    for ( int i = 0; i < WIDTH * HEIGHT * 3; ++i ) {
+    std::ofstream output( argv[2] );
+    output << "P3\n" << width << " " << height << "\n" << 255 << std::endl;
+    for ( size_t i = 0; i < width * height * 3; ++i ) {
         output << (int)image[i] << " ";
     }
     output.close();
